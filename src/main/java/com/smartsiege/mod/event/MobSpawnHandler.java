@@ -33,15 +33,19 @@ public class MobSpawnHandler {
 
     private static void initFields() {
         if (goalSelectorField != null) return;
-        try {
-            goalSelectorField = net.minecraft.world.entity.Mob.class.getDeclaredField("goalSelector");
-            goalSelectorField.setAccessible(true);
-            targetSelectorField = net.minecraft.world.entity.Mob.class.getDeclaredField("targetSelector");
-            targetSelectorField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(
-                "SmartSiege: could not reflect Mob#goalSelector/targetSelector.", e);
+        java.util.List<Field> matches = new java.util.ArrayList<>();
+        for (Field f : net.minecraft.world.entity.Mob.class.getDeclaredFields()) {
+            if (f.getType() == GoalSelector.class) {
+                f.setAccessible(true);
+                matches.add(f);
+            }
         }
+        if (matches.size() < 2) {
+            throw new RuntimeException(
+                "SmartSiege: expected 2 GoalSelector fields on Mob, found " + matches.size());
+        }
+        goalSelectorField = matches.get(0);
+        targetSelectorField = matches.get(1);
     }
 
     private static GoalSelector getGoalSelector(PathfinderMob mob) {
