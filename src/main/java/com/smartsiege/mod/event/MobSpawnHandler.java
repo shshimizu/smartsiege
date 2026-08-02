@@ -23,17 +23,6 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Central wiring point: whenever a hostile mob (Monster) joins the world,
- * bolt on whichever smart-AI goals are enabled in the config. We track
- * entity UUIDs we've already upgraded so we don't stack duplicate goals
- * on chunk reload / dimension travel.
- *
- * Mob.goalSelector / Mob.targetSelector are "protected" in vanilla, so we
- * reach them via reflection rather than requiring an access-transformer
- * entry (which needs exact SRG field IDs that can drift between Forge
- * builds). This is the same approach many mob-AI mods use.
- */
 @Mod.EventBusSubscriber(modid = "smartsiege")
 public class MobSpawnHandler {
 
@@ -51,8 +40,7 @@ public class MobSpawnHandler {
             targetSelectorField.setAccessible(true);
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(
-                "SmartSiege: could not reflect Mob#goalSelector/targetSelector. "
-                    + "This likely means the Minecraft/Forge mappings changed field names.", e);
+                "SmartSiege: could not reflect Mob#goalSelector/targetSelector.", e);
         }
     }
 
@@ -79,7 +67,7 @@ public class MobSpawnHandler {
         Level level = event.getLevel();
         if (level.isClientSide()) return;
         if (!(event.getEntity() instanceof Monster monster)) return;
-        if (!(monster instanceof PathfinderMob mob)) return;
+        PathfinderMob mob = monster;
 
         if (SiegeConfig.ONLY_ON_HARD_DIFFICULTY.get()
             && level.getDifficulty() != Difficulty.HARD) {
@@ -87,7 +75,7 @@ public class MobSpawnHandler {
         }
         if (level.getDifficulty() == Difficulty.PEACEFUL) return;
 
-        if (!UPGRADED.add(monster.getUUID())) return; // already upgraded
+        if (!UPGRADED.add(monster.getUUID())) return;
         applySmartAi(mob);
     }
 
@@ -105,8 +93,6 @@ public class MobSpawnHandler {
             goals.addGoal(3, new AmbushGoal(mob));
         }
         if (SiegeConfig.ENABLE_DOOR_BREAKING.get()) {
-            // Zombies already get vanilla door breaking on Hard; this gives
-            // every other hostile mob the same capability regardless of type.
             goals.addGoal(4, new SmartBreakDoorGoal(mob, 240));
         }
         if (SiegeConfig.ENABLE_DIGGING.get()) {
@@ -126,5 +112,4 @@ public class MobSpawnHandler {
             }
         }
     }
-
 }
