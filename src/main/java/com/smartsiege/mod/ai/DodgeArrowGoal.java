@@ -29,13 +29,12 @@ public class DodgeArrowGoal extends Goal {
         List<AbstractArrow> arrows = mob.level().getEntitiesOfClass(
             AbstractArrow.class, mob.getBoundingBox().inflate(DETECTION_RADIUS));
         for (AbstractArrow arrow : arrows) {
-            if (arrow.isInGround() || arrow.getDeltaMovement().lengthSqr() < 0.01) continue;
+            if (arrow.getDeltaMovement().lengthSqr() < 0.01) continue;
 
             Vec3 toMob = mob.position().subtract(arrow.position());
             double distance = toMob.length();
             if (distance > DETECTION_RADIUS) continue;
 
-            // Is the arrow's velocity roughly pointed at the mob?
             Vec3 arrowDir = arrow.getDeltaMovement().normalize();
             Vec3 towardMobDir = toMob.normalize();
             double alignment = arrowDir.dot(towardMobDir);
@@ -57,7 +56,7 @@ public class DodgeArrowGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return false; // one-shot sidestep, re-evaluated each tick via canUse
+        return false;
     }
 
     @Override
@@ -66,7 +65,6 @@ public class DodgeArrowGoal extends Goal {
         if (arrow == null) return;
 
         Vec3 arrowDir = arrow.getDeltaMovement().normalize();
-        // perpendicular vector in the horizontal plane
         Vec3 perpendicular = new Vec3(-arrowDir.z, 0, arrowDir.x).normalize();
         if (mob.getRandom().nextBoolean()) {
             perpendicular = perpendicular.scale(-1);
@@ -74,6 +72,6 @@ public class DodgeArrowGoal extends Goal {
 
         Vec3 dodgePos = mob.position().add(perpendicular.scale(2.5));
         mob.getNavigation().moveTo(dodgePos.x, dodgePos.y, dodgePos.z, speedModifier);
-        dodgeCooldown = 15; // ~0.75s before it can dodge again
+        dodgeCooldown = 15;
     }
 }
