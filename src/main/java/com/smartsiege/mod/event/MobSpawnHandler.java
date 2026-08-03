@@ -97,7 +97,7 @@ public class MobSpawnHandler {
             goals.addGoal(3, new AmbushGoal(mob));
         }
         if (SiegeConfig.ENABLE_DOOR_BREAKING.get()) {
-            goals.addGoal(4, new SmartBreakDoorGoal(mob, 240));
+            goals.addGoal(4, new SmartBreakDoorGoal(mob, SiegeConfig.DOOR_BREAK_TICKS.get()));
         }
         if (SiegeConfig.ENABLE_DIGGING.get()) {
             goals.addGoal(6, new DigTowardTargetGoal(mob));
@@ -113,6 +113,31 @@ public class MobSpawnHandler {
             if (followRange != null) {
                 double multiplier = SiegeConfig.SENSING_RANGE_MULTIPLIER.get();
                 followRange.setBaseValue(followRange.getBaseValue() * multiplier);
+            }
+        }
+
+        double damageMult = SiegeConfig.DAMAGE_MULTIPLIER.get();
+        if (damageMult != 1.0) {
+            AttributeInstance damage = mob.getAttribute(Attributes.ATTACK_DAMAGE);
+            if (damage != null) {
+                damage.setBaseValue(damage.getBaseValue() * damageMult);
+            }
+        }
+
+        double speedMult = SiegeConfig.SPEED_MULTIPLIER.get();
+        if (speedMult != 1.0) {
+            AttributeInstance speed = mob.getAttribute(Attributes.MOVEMENT_SPEED);
+            if (speed != null) {
+                speed.setBaseValue(speed.getBaseValue() * speedMult);
+            }
+        }
+
+        double healthMult = SiegeConfig.HEALTH_MULTIPLIER.get();
+        if (healthMult != 1.0) {
+            AttributeInstance health = mob.getAttribute(Attributes.MAX_HEALTH);
+            if (health != null) {
+                health.setBaseValue(health.getBaseValue() * healthMult);
+                mob.setHealth((float) mob.getMaxHealth());
             }
         }
     }
