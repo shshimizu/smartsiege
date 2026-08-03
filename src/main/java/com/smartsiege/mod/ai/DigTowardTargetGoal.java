@@ -12,17 +12,11 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.EnumSet;
 
-/**
- * If the mob's path to its target is blocked by a short run of soft/diggable
- * blocks (dirt, sand, wood, etc.) it will mine straight through rather than
- * giving up and wandering off.
- */
 public class DigTowardTargetGoal extends Goal {
 
     private final Mob mob;
     private BlockPos digTarget;
     private int digTicks;
-    private static final int MAX_DIG_TICKS = 60; // 3 seconds per block
 
     public DigTowardTargetGoal(Mob mob) {
         this.mob = mob;
@@ -38,8 +32,6 @@ public class DigTowardTargetGoal extends Goal {
         LivingEntity target = mob.getTarget();
         if (target == null || !target.isAlive()) return false;
 
-        // Only engage digging when stuck: navigation says no path exists,
-        // but the target is close and roughly at the same height.
         if (!mob.getNavigation().isDone()) return false;
         double dist = mob.distanceToSqr(target);
         if (dist > 36.0 || dist < 4.0) return false;
@@ -70,7 +62,7 @@ public class DigTowardTargetGoal extends Goal {
     private boolean isDiggable(BlockState state) {
         if (state.isAir()) return false;
         float hardness = state.getDestroySpeed(mob.level(), BlockPos.ZERO);
-        if (hardness < 0) return false; // unbreakable (bedrock etc.)
+        if (hardness < 0) return false;
         return hardness * 10 <= SiegeConfig.DIG_HARDNESS_LIMIT.get();
     }
 
@@ -78,7 +70,7 @@ public class DigTowardTargetGoal extends Goal {
     public boolean canContinueToUse() {
         if (digTarget == null) return false;
         BlockState state = mob.level().getBlockState(digTarget);
-        return !state.isAir() && digTicks < MAX_DIG_TICKS;
+        return !state.isAir() && digTicks < SiegeConfig.DIG_TICKS.get();
     }
 
     @Override
@@ -94,10 +86,11 @@ public class DigTowardTargetGoal extends Goal {
             digTarget.getX() + 0.5, digTarget.getY() + 0.5, digTarget.getZ() + 0.5);
 
         if (mob.level() instanceof ServerLevel serverLevel) {
-            int progress = Math.min(9, (digTicks * 10) / MAX_DIG_TICKS);
+            int maxTicks = SiegeConfig.DIG_TICKS.get();
+            int progress = Math.min(9, (digTicks * 10) / maxTicks);
             serverLevel.destroyBlockProgress(mob.getId(), digTarget, progress);
 
-            if (digTicks >= MAX_DIG_TICKS) {
+            if (digTicks >= maxTicks) {
                 serverLevel.destroyBlockProgress(mob.getId(), digTarget, -1);
                 serverLevel.destroyBlock(digTarget, false, mob);
             }
