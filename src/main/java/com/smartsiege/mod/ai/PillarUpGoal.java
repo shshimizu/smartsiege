@@ -11,18 +11,11 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.EnumSet;
 
-/**
- * When the target is well above the mob and unreachable by normal pathing
- * (e.g. player towered up on a 1x1 pillar), the mob stacks blocks beneath
- * itself and jumps to climb up, mimicking the classic player "tower defense"
- * counter-strategy.
- */
 public class PillarUpGoal extends Goal {
 
     private final Mob mob;
     private int placeCooldown;
     private int blocksPlaced;
-    private static final int MAX_HEIGHT = 6;
 
     public PillarUpGoal(Mob mob) {
         this.mob = mob;
@@ -43,8 +36,8 @@ public class PillarUpGoal extends Goal {
             (target.getX() - mob.getX()) * (target.getX() - mob.getX())
                 + (target.getZ() - mob.getZ()) * (target.getZ() - mob.getZ());
 
-        // Target is significantly higher and close horizontally (i.e. towered up).
-        return heightDiff > 2.5 && heightDiff < 12.0 && horizontalDistSqr < 4.0
+        return heightDiff > 2.5 && heightDiff < SiegeConfig.PILLAR_MAX_HEIGHT.get() + 1
+            && horizontalDistSqr < 4.0
             && mob.getNavigation().isDone();
     }
 
@@ -53,7 +46,7 @@ public class PillarUpGoal extends Goal {
         LivingEntity target = mob.getTarget();
         return target != null && target.isAlive()
             && target.getY() - mob.getY() > 1.0
-            && blocksPlaced < MAX_HEIGHT;
+            && blocksPlaced < SiegeConfig.PILLAR_MAX_HEIGHT.get();
     }
 
     @Override
@@ -64,8 +57,6 @@ public class PillarUpGoal extends Goal {
 
     @Override
     public void tick() {
-        // Always jump while this goal is active; combined with placing a
-        // block underfoot mid-air, this lets the mob climb straight up.
         mob.getJumpControl().jump();
 
         if (placeCooldown > 0) {
@@ -78,7 +69,7 @@ public class PillarUpGoal extends Goal {
         if (below.isAir() && mob.getDeltaMovement().y > 0.05 && !mob.onGround()) {
             mob.level().setBlockAndUpdate(belowPos, Blocks.COBBLESTONE.defaultBlockState());
             blocksPlaced++;
-            placeCooldown = 10;
+            placeCooldown = SiegeConfig.PILLAR_COOLDOWN_TICKS.get();
         }
     }
 
