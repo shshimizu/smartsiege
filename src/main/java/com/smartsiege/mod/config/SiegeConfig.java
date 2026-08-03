@@ -2,10 +2,6 @@ package com.smartsiege.mod.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
-/**
- * Server-side config: lets players/server owners toggle each smart-AI feature
- * on or off, and tune how aggressive it is, without recompiling the mod.
- */
 public class SiegeConfig {
 
     public static final ForgeConfigSpec SPEC;
@@ -24,6 +20,15 @@ public class SiegeConfig {
     public static final ForgeConfigSpec.IntValue DIG_HARDNESS_LIMIT;
     public static final ForgeConfigSpec.BooleanValue ONLY_ON_HARD_DIFFICULTY;
     public static final ForgeConfigSpec.BooleanValue REQUIRE_MOB_GRIEFING;
+
+    public static final ForgeConfigSpec.IntValue DIG_TICKS;
+    public static final ForgeConfigSpec.IntValue DOOR_BREAK_TICKS;
+    public static final ForgeConfigSpec.IntValue PILLAR_COOLDOWN_TICKS;
+    public static final ForgeConfigSpec.IntValue PILLAR_MAX_HEIGHT;
+
+    public static final ForgeConfigSpec.DoubleValue DAMAGE_MULTIPLIER;
+    public static final ForgeConfigSpec.DoubleValue SPEED_MULTIPLIER;
+    public static final ForgeConfigSpec.DoubleValue HEALTH_MULTIPLIER;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -72,6 +77,29 @@ public class SiegeConfig {
         REQUIRE_MOB_GRIEFING = builder
             .comment("If true, digging/door-breaking/pillaring respect the mobGriefing gamerule.")
             .define("requireMobGriefing", true);
+
+        DIG_TICKS = builder
+            .comment("Ticks (20 = 1 second) it takes to dig through one block. Lower = faster/scarier.")
+            .defineInRange("digTicks", 20, 1, 200);
+        DOOR_BREAK_TICKS = builder
+            .comment("Ticks (20 = 1 second) it takes to smash down a door. Lower = faster/scarier.")
+            .defineInRange("doorBreakTicks", 40, 1, 400);
+        PILLAR_COOLDOWN_TICKS = builder
+            .comment("Ticks between each block a mob places while pillaring up. Lower = faster climbing.")
+            .defineInRange("pillarCooldownTicks", 3, 1, 40);
+        PILLAR_MAX_HEIGHT = builder
+            .comment("Maximum number of blocks a mob will stack while pillaring up.")
+            .defineInRange("pillarMaxHeight", 12, 1, 40);
+
+        DAMAGE_MULTIPLIER = builder
+            .comment("Multiplier applied to every upgraded hostile mob's attack damage. 1.0 = vanilla.")
+            .defineInRange("damageMultiplier", 1.4, 0.1, 10.0);
+        SPEED_MULTIPLIER = builder
+            .comment("Multiplier applied to every upgraded hostile mob's movement speed. 1.0 = vanilla.")
+            .defineInRange("speedMultiplier", 1.15, 0.1, 5.0);
+        HEALTH_MULTIPLIER = builder
+            .comment("Multiplier applied to every upgraded hostile mob's max health. 1.0 = vanilla.")
+            .defineInRange("healthMultiplier", 1.3, 0.1, 10.0);
         builder.pop();
 
         SPEC = builder.build();
